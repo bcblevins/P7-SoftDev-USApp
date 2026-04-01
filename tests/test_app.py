@@ -3,38 +3,6 @@ from flask import request
 from server import app
 
 
-def future_competitions():
-    """Static competition data with future dates for booking tests"""
-    return [
-        {
-            "name": "Spring Festival",
-            "date": "2030-03-27 10:00:00",
-            "spotsAvailable": "25",
-        },
-        {
-            "name": "Fall Classic",
-            "date": "2030-10-22 13:30:00",
-            "spotsAvailable": "13",
-        },
-    ]
-
-
-def mixed_competitions():
-    """Competition data with one future event and one past event"""
-    return [
-        {
-            "name": "Spring Festival",
-            "date": "2030-03-27 10:00:00",
-            "spotsAvailable": "25",
-        },
-        {
-            "name": "Fall Classic",
-            "date": "2020-10-22 13:30:00",
-            "spotsAvailable": "13",
-        },
-    ]
-
-
 def test_homepage():
     """Test the homepage works (HTTP status 200 OK)"""
     with app.test_client() as c:
@@ -58,7 +26,21 @@ def test_login():
 
 def test_summary_only_shows_booking_link_for_future_competitions(monkeypatch):
     """Tests that past competitions are not shown as bookable"""
-    monkeypatch.setattr("server.get_competitions", mixed_competitions)
+    monkeypatch.setattr(
+        "server.get_competitions",
+        lambda: [
+            {
+                "name": "Spring Festival",
+                "date": "2030-03-27 10:00:00",
+                "spotsAvailable": "25",
+            },
+            {
+                "name": "Fall Classic",
+                "date": "2020-10-22 13:30:00",
+                "spotsAvailable": "13",
+            },
+        ],
+    )
 
     with app.test_client() as c:
         resp = c.post(
@@ -98,7 +80,21 @@ def test_clubs_page_is_public():
 
 def test_booking_updates_points_and_available_spots(monkeypatch):
     """Tests that a successful booking updates club points and competition spots"""
-    monkeypatch.setattr("server.get_competitions", future_competitions)
+    monkeypatch.setattr(
+        "server.get_competitions",
+        lambda: [
+            {
+                "name": "Spring Festival",
+                "date": "2030-03-27 10:00:00",
+                "spotsAvailable": "25",
+            },
+            {
+                "name": "Fall Classic",
+                "date": "2030-10-22 13:30:00",
+                "spotsAvailable": "13",
+            },
+        ],
+    )
 
     with app.test_client() as c:
         c.post("/login", data={"email": "john@simplylift.co"}, follow_redirects=True)
@@ -118,7 +114,21 @@ def test_booking_updates_points_and_available_spots(monkeypatch):
 
 def test_booking_more_than_twelve_spots_is_forbidden(monkeypatch):
     """Tests that a club cannot book more than 12 spots"""
-    monkeypatch.setattr("server.get_competitions", future_competitions)
+    monkeypatch.setattr(
+        "server.get_competitions",
+        lambda: [
+            {
+                "name": "Spring Festival",
+                "date": "2030-03-27 10:00:00",
+                "spotsAvailable": "25",
+            },
+            {
+                "name": "Fall Classic",
+                "date": "2030-10-22 13:30:00",
+                "spotsAvailable": "13",
+            },
+        ],
+    )
 
     with app.test_client() as c:
         c.post("/login", data={"email": "john@simplylift.co"}, follow_redirects=True)
@@ -135,7 +145,21 @@ def test_booking_more_than_twelve_spots_is_forbidden(monkeypatch):
 
 def test_booking_more_than_available_points_is_forbidden(monkeypatch):
     """Tests that a club cannot book more spots than its points allow"""
-    monkeypatch.setattr("server.get_competitions", future_competitions)
+    monkeypatch.setattr(
+        "server.get_competitions",
+        lambda: [
+            {
+                "name": "Spring Festival",
+                "date": "2030-03-27 10:00:00",
+                "spotsAvailable": "25",
+            },
+            {
+                "name": "Fall Classic",
+                "date": "2030-10-22 13:30:00",
+                "spotsAvailable": "13",
+            },
+        ],
+    )
 
     with app.test_client() as c:
         c.post("/login", data={"email": "admin@irontemple.com"}, follow_redirects=True)

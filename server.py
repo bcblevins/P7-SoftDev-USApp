@@ -9,12 +9,6 @@ app = Flask(__name__)
 app.secret_key = "something_special"
 
 
-def is_past_competition(competition):
-    """Checks whether a competition date is in the past"""
-    competition_date = datetime.strptime(competition["date"], "%Y-%m-%d %H:%M:%S")
-    return competition_date < datetime.now()
-
-
 @app.route("/")
 def index():
     """Homepage"""
@@ -49,13 +43,13 @@ def summary():
 
     club = session["club"]
     competitions = get_competitions()
+    for competition in competitions:
+        competition["isPast"] = (
+            datetime.strptime(competition["date"], "%Y-%m-%d %H:%M:%S")
+            < datetime.now()
+        )
 
-    return render_template(
-        "welcome.html",
-        club=club,
-        competitions=competitions,
-        is_past_competition=is_past_competition,
-    )
+    return render_template("welcome.html", club=club, competitions=competitions)
 
 
 @app.route("/book/<competition>")
@@ -71,8 +65,10 @@ def book(competition):
         ), 404
 
     found_competition = matching_comps[0]
-
-    if is_past_competition(found_competition):
+    if (
+        datetime.strptime(found_competition["date"], "%Y-%m-%d %H:%M:%S")
+        < datetime.now()
+    ):
         return render_template(
             "error.html", message="This competition has already taken place."
         ), 403
@@ -92,7 +88,7 @@ def book_spots():
 
     competition = matching_comps[0]
 
-    if is_past_competition(competition):
+    if datetime.strptime(competition["date"], "%Y-%m-%d %H:%M:%S") < datetime.now():
         return render_template(
             "error.html", message="This competition has already taken place."
         ), 403
@@ -117,13 +113,13 @@ def book_spots():
     club["points"] = str(int(club["points"]) - spots_required)
     session["club"] = club
     competition["spotsAvailable"] = int(competition["spotsAvailable"]) - spots_required
+    for competition in competitions:
+        competition["isPast"] = (
+            datetime.strptime(competition["date"], "%Y-%m-%d %H:%M:%S")
+            < datetime.now()
+        )
     flash("Great-booking complete!")
-    return render_template(
-        "welcome.html",
-        club=club,
-        competitions=competitions,
-        is_past_competition=is_past_competition,
-    )
+    return render_template("welcome.html", club=club, competitions=competitions)
 
 
 @app.route("/logout")
