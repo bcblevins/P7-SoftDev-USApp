@@ -50,7 +50,12 @@ def summary():
     club = session["club"]
     competitions = get_competitions()
 
-    return render_template("welcome.html", club=club, competitions=competitions)
+    return render_template(
+        "welcome.html",
+        club=club,
+        competitions=competitions,
+        is_past_competition=is_past_competition,
+    )
 
 
 @app.route("/book/<competition>")
@@ -113,7 +118,12 @@ def book_spots():
     session["club"] = club
     competition["spotsAvailable"] = int(competition["spotsAvailable"]) - spots_required
     flash("Great-booking complete!")
-    return render_template("welcome.html", club=club, competitions=competitions)
+    return render_template(
+        "welcome.html",
+        club=club,
+        competitions=competitions,
+        is_past_competition=is_past_competition,
+    )
 
 
 @app.route("/logout")

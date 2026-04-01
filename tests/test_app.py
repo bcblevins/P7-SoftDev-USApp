@@ -19,6 +19,22 @@ def future_competitions():
     ]
 
 
+def mixed_competitions():
+    """Competition data with one future event and one past event"""
+    return [
+        {
+            "name": "Spring Festival",
+            "date": "2030-03-27 10:00:00",
+            "spotsAvailable": "25",
+        },
+        {
+            "name": "Fall Classic",
+            "date": "2020-10-22 13:30:00",
+            "spotsAvailable": "13",
+        },
+    ]
+
+
 def test_homepage():
     """Test the homepage works (HTTP status 200 OK)"""
     with app.test_client() as c:
@@ -38,6 +54,22 @@ def test_login():
         assert "john@simplylift.co" in resp.data.decode()
         # The page shows the logged-in club points
         assert "Points available: 13" in resp.data.decode()
+
+
+def test_summary_only_shows_booking_link_for_future_competitions(monkeypatch):
+    """Tests that past competitions are not shown as bookable"""
+    monkeypatch.setattr("server.get_competitions", mixed_competitions)
+
+    with app.test_client() as c:
+        resp = c.post(
+            "/login", data={"email": "john@simplylift.co"}, follow_redirects=True
+        )
+
+        assert resp.status_code == 200
+        page = resp.data.decode()
+        assert "Spring Festival" in page
+        assert "Fall Classic" in page
+        assert page.count("Book spots") == 1
 
 
 def test_login_with_invalid_email():
