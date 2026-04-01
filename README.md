@@ -23,6 +23,29 @@ This project uses the following technologies:
 
 - Run the application with `python server.py`. The app will start and display in the terminal a link where you can access it (locally) using your browser.
 
+### How To Use The App
+
+- Open the homepage and log in with a club secretary email from `data/clubs.json`
+- No password is required in this proof of concept
+- After logging in, you can see:
+  - the club email
+  - the club points
+  - the competition list
+- The homepage also has a public link to the clubs page so any user can see clubs and their available points
+
+### Current Features
+
+- Club secretary login by email
+- Invalid login returns an error
+- Public clubs page
+- Competition summary page
+- Booking page for valid future competitions
+- Booking validation for:
+  - more than 12 spots
+  - not enough club points
+  - not enough competition spots
+- Past competitions cannot be booked
+
 ### Current setup
 
 The app is powered by [JSON files](https://www.tutorialspoint.com/json/json_quick_guide.htm). They live in the `data` folder.
@@ -34,3 +57,10 @@ The app is powered by [JSON files](https://www.tutorialspoint.com/json/json_quic
 
 The project uses [pytest](https://docs.pytest.org/). You should also use [coverage](https://coverage.readthedocs.io/) to create a coverage report.
 
+- Run tests with: `pytest -q`
+- Tests are stored in the `tests` folder
+
+### Notes
+
+- Data is stored in JSON files and is loaded at runtime
+- This project uses Flask templates and does not require JavaScript
