@@ -16,11 +16,14 @@ def index():
 @app.route("/login", methods=["POST"])
 def login():
     """Use the session object to store the club information across requests"""
-
     clubs = get_clubs()
     email = request.form["email"]
+    club = next((item for item in clubs if item["email"] == email), None)
 
-    club = [item for item in clubs if item["email"] == email][0]
+    if club is None:
+        flash("Unknown email. Please try again.")
+        return render_template("index.html"), 401
+
     session["club"] = club
 
     return redirect(url_for("summary"))
