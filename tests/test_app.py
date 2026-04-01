@@ -34,3 +34,15 @@ def test_login_with_invalid_email():
         assert request.path == "/login"
         assert resp.status_code == 401
         assert "Unknown email. Please try again." in resp.data.decode()
+
+
+def test_clubs_page_is_public():
+    """Tests that any user can see the clubs page"""
+    with app.test_client() as c:
+        resp = c.get("/clubs")
+
+        assert resp.status_code == 200
+        page = resp.data.decode()
+        assert "Simply Lift" in page
+        assert "Iron Temple" in page
+        assert "Points available" in page

@@ -5,6 +5,9 @@
 <h3>
     Please enter your secretary email to continue:
 </h3>
+<p>
+    <a href="{{ url_for('clubs') }}">View clubs and available points</a>
+</p>
 {% with messages = get_flashed_messages() %}
 {% if messages %}
 <ul>

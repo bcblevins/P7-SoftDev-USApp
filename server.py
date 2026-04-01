@@ -13,6 +13,12 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/clubs")
+def clubs():
+    """Public page showing clubs and their available points"""
+    return render_template("clubs.html", clubs=get_clubs())
+
+
 @app.route("/login", methods=["POST"])
 def login():
     """Use the session object to store the club information across requests"""
