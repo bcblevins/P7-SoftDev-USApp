@@ -40,6 +40,9 @@ def login():
 @app.route("/summary")
 def summary():
     """Custom "homepage" for logged in users"""
+    if "club" not in session:
+        flash("Please log in first.")
+        return redirect(url_for("index"))
 
     club = session["club"]
     competitions = get_competitions()
@@ -55,6 +58,10 @@ def summary():
 @app.route("/book/<competition>")
 def book(competition):
     """Book spots in a competition page"""
+    if "club" not in session:
+        flash("Please log in first.")
+        return redirect(url_for("index"))
+
     club = session["club"]
 
     competitions = get_competitions()
@@ -79,6 +86,10 @@ def book(competition):
 @app.route("/book", methods=["POST"])
 def book_spots():
     """This page is only accessible through a POST request (form validation)"""
+    if "club" not in session:
+        flash("Please log in first.")
+        return redirect(url_for("index"))
+
     club = session["club"]
     competitions = get_competitions()
 
@@ -125,6 +136,10 @@ def book_spots():
 @app.route("/logout")
 def logout():
     """We delete session data in order to log the user out"""
+    if "club" not in session:
+        flash("Please log in first.")
+        return redirect(url_for("index"))
+
     del session["club"]
     return redirect(url_for("index"))
 

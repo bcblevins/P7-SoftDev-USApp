@@ -83,6 +83,46 @@ def test_login_with_invalid_email():
         assert "Unknown email. Please try again." in resp.data.decode()
 
 
+def test_summary_requires_login():
+    """Tests that the summary page redirects to login when logged out"""
+    with app.test_client() as c:
+        resp = c.get("/summary", follow_redirects=True)
+
+        assert resp.status_code == 200
+        assert "Please log in first." in resp.data.decode()
+
+
+def test_booking_page_requires_login():
+    """Tests that the booking page redirects to login when logged out"""
+    with app.test_client() as c:
+        resp = c.get("/book/Spring Festival", follow_redirects=True)
+
+        assert resp.status_code == 200
+        assert "Please log in first." in resp.data.decode()
+
+
+def test_booking_submit_requires_login():
+    """Tests that booking submission redirects to login when logged out"""
+    with app.test_client() as c:
+        resp = c.post(
+            "/book",
+            data={"competition": "Spring Festival", "spots": "1"},
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 200
+        assert "Please log in first." in resp.data.decode()
+
+
+def test_logout_requires_login():
+    """Tests that logout handles logged-out users safely"""
+    with app.test_client() as c:
+        resp = c.get("/logout", follow_redirects=True)
+
+        assert resp.status_code == 200
+        assert "Please log in first." in resp.data.decode()
+
+
 def test_clubs_page_is_public():
     """Tests that any user can see the clubs page"""
     with app.test_client() as c:
