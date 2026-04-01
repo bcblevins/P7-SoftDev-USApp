@@ -64,3 +64,59 @@ def test_booking_updates_points_and_available_spots():
         assert "Great-booking complete!" in page
         assert "Points available: 12" in page
         assert "Number of spots available: 24" in page
+
+
+def test_booking_more_than_twelve_spots_is_forbidden():
+    """Tests that a club cannot book more than 12 spots"""
+    with app.test_client() as c:
+        c.post("/login", data={"email": "john@simplylift.co"}, follow_redirects=True)
+
+        resp = c.post(
+            "/book",
+            data={"competition": "Spring Festival", "spots": "13"},
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 403
+        assert "You cannot book more than 12 spots." in resp.data.decode()
+
+
+def test_booking_more_than_available_points_is_forbidden():
+    """Tests that a club cannot book more spots than its points allow"""
+    with app.test_client() as c:
+        c.post("/login", data={"email": "admin@irontemple.com"}, follow_redirects=True)
+
+        resp = c.post(
+            "/book",
+            data={"competition": "Spring Festival", "spots": "5"},
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 403
+        assert "You do not have enough points." in resp.data.decode()
+
+
+def test_booking_more_than_available_competition_spots_is_forbidden(monkeypatch):
+    """Tests that a club cannot book more spots than the competition has left"""
+    def limited_competitions():
+        return [
+            {
+                "name": "Spring Festival",
+                "date": "2030-03-27 10:00:00",
+                "spotsAvailable": "3",
+            }
+        ]
+
+    monkeypatch.setattr("server.get_competitions", limited_competitions)
+
+    with app.test_client() as c:
+        c.post("/login", data={"email": "john@simplylift.co"}, follow_redirects=True)
+
+        resp = c.post(
+            "/book",
+            data={"competition": "Spring Festival", "spots": "4"},
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 403
+        assert "There are not enough spots available." in resp.data.decode()
