@@ -46,3 +46,21 @@ def test_clubs_page_is_public():
         assert "Simply Lift" in page
         assert "Iron Temple" in page
         assert "Points available" in page
+
+
+def test_booking_updates_points_and_available_spots():
+    """Tests that a successful booking updates club points and competition spots"""
+    with app.test_client() as c:
+        c.post("/login", data={"email": "john@simplylift.co"}, follow_redirects=True)
+
+        resp = c.post(
+            "/book",
+            data={"competition": "Spring Festival", "spots": "1"},
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 200
+        page = resp.data.decode()
+        assert "Great-booking complete!" in page
+        assert "Points available: 12" in page
+        assert "Number of spots available: 24" in page

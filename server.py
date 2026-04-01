@@ -75,6 +75,8 @@ def book_spots():
     competition = matching_comps[0]
 
     spots_required = int(request.form["spots"])
+    club["points"] = str(int(club["points"]) - spots_required)
+    session["club"] = club
     competition["spotsAvailable"] = int(competition["spotsAvailable"]) - spots_required
     flash("Great-booking complete!")
     return render_template("welcome.html", club=club, competitions=competitions)
