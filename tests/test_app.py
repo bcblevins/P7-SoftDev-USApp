@@ -1,3 +1,4 @@
+from provider import get_competitions
 from flask import request
 
 from server import app
@@ -22,6 +23,22 @@ def test_login():
         assert "john@simplylift.co" in resp.data.decode()
         # The page shows the logged-in club points
         assert "Points available: 13" in resp.data.decode()
+
+
+def test_seed_data_shows_one_bookable_competition(monkeypatch):
+    """Tests that the seeded app data still allows one live booking demo"""
+    monkeypatch.setattr("server.get_competitions", get_competitions)
+
+    with app.test_client() as c:
+        resp = c.post(
+            "/login", data={"email": "john@simplylift.co"}, follow_redirects=True
+        )
+
+        assert resp.status_code == 200
+        page = resp.data.decode()
+        assert "Spring Festival" in page
+        assert "Fall Classic" in page
+        assert page.count("Book spots") == 1
 
 
 def test_summary_only_shows_booking_link_for_future_competitions(monkeypatch):
@@ -216,7 +233,7 @@ def test_booking_past_competition_returns_403():
     with app.test_client() as c:
         c.post("/login", data={"email": "john@simplylift.co"}, follow_redirects=True)
 
-        resp = c.get("/book/Spring Festival")
+        resp = c.get("/book/Fall Classic")
 
         assert resp.status_code == 403
         assert "This competition has already taken place." in resp.data.decode()
