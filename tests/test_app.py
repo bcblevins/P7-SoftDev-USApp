@@ -3,6 +3,22 @@ from flask import request
 from server import app
 
 
+def future_competitions():
+    """Static competition data with future dates for booking tests"""
+    return [
+        {
+            "name": "Spring Festival",
+            "date": "2030-03-27 10:00:00",
+            "spotsAvailable": "25",
+        },
+        {
+            "name": "Fall Classic",
+            "date": "2030-10-22 13:30:00",
+            "spotsAvailable": "13",
+        },
+    ]
+
+
 def test_homepage():
     """Test the homepage works (HTTP status 200 OK)"""
     with app.test_client() as c:
@@ -48,8 +64,10 @@ def test_clubs_page_is_public():
         assert "Points available" in page
 
 
-def test_booking_updates_points_and_available_spots():
+def test_booking_updates_points_and_available_spots(monkeypatch):
     """Tests that a successful booking updates club points and competition spots"""
+    monkeypatch.setattr("server.get_competitions", future_competitions)
+
     with app.test_client() as c:
         c.post("/login", data={"email": "john@simplylift.co"}, follow_redirects=True)
 
@@ -66,8 +84,10 @@ def test_booking_updates_points_and_available_spots():
         assert "Number of spots available: 24" in page
 
 
-def test_booking_more_than_twelve_spots_is_forbidden():
+def test_booking_more_than_twelve_spots_is_forbidden(monkeypatch):
     """Tests that a club cannot book more than 12 spots"""
+    monkeypatch.setattr("server.get_competitions", future_competitions)
+
     with app.test_client() as c:
         c.post("/login", data={"email": "john@simplylift.co"}, follow_redirects=True)
 
@@ -81,8 +101,10 @@ def test_booking_more_than_twelve_spots_is_forbidden():
         assert "You cannot book more than 12 spots." in resp.data.decode()
 
 
-def test_booking_more_than_available_points_is_forbidden():
+def test_booking_more_than_available_points_is_forbidden(monkeypatch):
     """Tests that a club cannot book more spots than its points allow"""
+    monkeypatch.setattr("server.get_competitions", future_competitions)
+
     with app.test_client() as c:
         c.post("/login", data={"email": "admin@irontemple.com"}, follow_redirects=True)
 
@@ -120,3 +142,25 @@ def test_booking_more_than_available_competition_spots_is_forbidden(monkeypatch)
 
         assert resp.status_code == 403
         assert "There are not enough spots available." in resp.data.decode()
+
+
+def test_booking_invalid_competition_returns_404():
+    """Tests that an unknown competition returns a 404 page"""
+    with app.test_client() as c:
+        c.post("/login", data={"email": "john@simplylift.co"}, follow_redirects=True)
+
+        resp = c.get("/book/Competition That Does Not Exist")
+
+        assert resp.status_code == 404
+        assert "This competition does not exist." in resp.data.decode()
+
+
+def test_booking_past_competition_returns_403():
+    """Tests that a past competition cannot be booked"""
+    with app.test_client() as c:
+        c.post("/login", data={"email": "john@simplylift.co"}, follow_redirects=True)
+
+        resp = c.get("/book/Spring Festival")
+
+        assert resp.status_code == 403
+        assert "This competition has already taken place." in resp.data.decode()

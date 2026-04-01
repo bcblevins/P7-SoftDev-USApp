@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 
 from provider import get_clubs, get_competitions
@@ -5,6 +7,12 @@ from provider import get_clubs, get_competitions
 app = Flask(__name__)
 # You should change the secret key in production!
 app.secret_key = "something_special"
+
+
+def is_past_competition(competition):
+    """Checks whether a competition date is in the past"""
+    competition_date = datetime.strptime(competition["date"], "%Y-%m-%d %H:%M:%S")
+    return competition_date < datetime.now()
 
 
 @app.route("/")
@@ -52,14 +60,19 @@ def book(competition):
 
     competitions = get_competitions()
     matching_comps = [comp for comp in competitions if comp["name"] == competition]
+    if not matching_comps:
+        return render_template(
+            "error.html", message="This competition does not exist."
+        ), 404
 
     found_competition = matching_comps[0]
 
-    if found_competition:
-        return render_template("booking.html", club=club, competition=found_competition)
-    else:
-        flash("Something went wrong-please try again")
-        return redirect(url_for("summary"))
+    if is_past_competition(found_competition):
+        return render_template(
+            "error.html", message="This competition has already taken place."
+        ), 403
+
+    return render_template("booking.html", club=club, competition=found_competition)
 
 
 @app.route("/book", methods=["POST"])
@@ -73,6 +86,11 @@ def book_spots():
     ]
 
     competition = matching_comps[0]
+
+    if is_past_competition(competition):
+        return render_template(
+            "error.html", message="This competition has already taken place."
+        ), 403
 
     spots_required = int(request.form["spots"])
 
